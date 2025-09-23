@@ -63,29 +63,10 @@ The 'cascadeInputVars' are the estimates produced by the parent model, and will 
 The initial code for the above architectures has been adopted from the following sources:
 
 Seq2seq Model & FC_RNN encoder model:<br>
-https://github.com/bentrevett/pytorch-seq2seq/blob/master/1%20-%20Sequence%20to%20Sequence%20Learning%20with%20Neural%20Networks.ipynb
+https://github.com/bentrevett/pytorch-seq2seq/blob/master/1%20-%20Sequence%20to%20Sequence%20Learning%20with%20Neural%20Networks.ipynb<br>
+
+https://github.com/SheezaShabbir/Time-series-Analysis-using-LSTM-RNN-and-GRU/blob/main/Pytorch_LSTMs%2CRNN%2CGRU_for_time_series_data.ipynb<br>
 
 The Transformer encoder model:<br>
-https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+https://pytorch.org/tutorials/beginner/transformer_tutorial.html<br>
 
-***
-### 1) [Read parameters from file](#read_parameters)
-* Read the parameters for constructing the model and the data sets and for model training
-
-### 2) [Model definition](#model_definition)
-* Initialize the model (define architecture & init weights)
-* Define criterion = nn.MSELoss() or two types of custom losses
-* Define optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-* Define learning rate scheduler + decay factor (lr_scheduler.StepLR)
-
-### 3) [Construction of data sets](#construct_datasets)
-* Training data set
-* validation data set
-* Test data set
-
-### 4) [Model training](#model_training)
-
-### 5) Model evaluation
-* The accuracy of the produced model (or model read from file) verified against test set data
-
-***
