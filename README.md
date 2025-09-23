@@ -6,7 +6,7 @@ The tool facilitates the training of three different neural network architecture
 2) Recurrent Neural Network (RNN) Encoder-decoder network
 3) Transformer encoder network. 
 <br>
-The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions will be produced always for three species: pine, spruce (spr), and broadleaved (bl) species.<br>
+The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions will be produced always for three species: pine, spruce (spr), and broadleaved (bl) species.<br><br>
 
 The data set for the model training and evaluation contains forest variable data from 28,666 field inventory plots in continental Finland that were used as the initial state of the sites to be simulated. These data were provided by The Finnish Forest Centre (FFC). Two separate data sets contain aggregated (yearly and monthly) climate data downloaded from Copernicus Climate Data Store (CDS) to provide realistic climate scenarios.
 
@@ -50,7 +50,7 @@ The fully connected block's outputs are connected to the RNN hidden state (and c
 4. A decoder taking the combined input from the previous layers, and producing the predictions for nYears = 25
 
 The encoder block outputs are concatenated with the outputs from the fully connected block, and connected to
-the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fully connected block's outputs are split and divided between the decoder separate layers h0 inputs. With LSTM type RNN the h0 inputs are replicated for cell state input c0. 
+the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fully connected block's outputs are split and divided between the decoder separate layers h0 inputs. With LSTM type RNN the h0 inputs are replicated for cell state inputs c0. 
 
 </div>
 
