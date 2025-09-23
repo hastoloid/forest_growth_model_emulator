@@ -66,5 +66,11 @@ https://github.com/SheezaShabbir/Time-series-Analysis-using-LSTM-RNN-and-GRU/blo
 The Transformer encoder model:<br>
 https://pytorch.org/tutorials/beginner/transformer_tutorial.html<br>
 
+
+***
+### For the PREBASSO tool, see:
+https://github.com/ForModLabUHel/Rprebasso
+
+***
 ##NOTE: This repository is not ready!
 
