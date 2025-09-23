@@ -29,7 +29,7 @@ Three different network architectures have been defined for the forest variable 
 <b>The FC_RNN_Model architecture contains the modules:</b>
 
 1. The dense (fully connected) network for the static inputs = site info & forest variables (i.e. the starting year status)
-2. An RNN network the takes the daily weather data time series as input (for 25 years)
+2. An RNN network the takes the yearly or monthly weather data time series as input (for 25 years)
 
 The fully connected block's outputs are connected to the RNN hidden state (and cell state with LSTM) initial inputs (h0, c0), and replicated for selectable number of bottom layers if the nuber of the RNN layers > 1.
     
@@ -45,9 +45,9 @@ The fully connected block's outputs are connected to the RNN hidden state (and c
 <b>The seq2seq model architecture contains the modules:</b>
 
 1. The dense (fully connected) network for the static inputs = site info & forest variables (i.e. the starting year status)
-2. An encoder network the takes the daily weather data time series as input (for 25 years)
+2. An encoder network the takes the yearly or monthly weather data time series as input (for 25 years)
 3. A concatenation part that concatenates the hidden output of the encoder and the outputs of the linear network
-4. A decoder taking the combined input from the previous layers, and producing the predictions for nYears = 25
+4. A decoder that takes the concatenated context vector from the encoder part, and the 25-year prediction targets (in training phase), and produces the predictions for nYears = 25
 
 The encoder block outputs are concatenated with the outputs from the fully connected block, and connected to
 the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fully connected block's outputs are split and divided between the decoder separate layers h0 inputs. With LSTM type RNN the h0 inputs are replicated for cell state inputs c0. 
