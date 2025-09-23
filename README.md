@@ -6,7 +6,22 @@ A Python tool to produce deep learning models for emulating the PREBASSO forest 
 
 Three different network architectures have been defined for the forest variable growth or carbon balance variable prediction task.
 
-#### i) The seq2seq model
+#### i) The RNN encoder with fully connected section [FC_RNN model]
+
+<div class="alert alert-block alert-warning">
+<b>The FC_RNN_Model architecture contains the modules:</b>
+
+1. The dense (fully connected) network for the static inputs = site info & forest variables (i.e. the starting year status)
+2. An RNN network the takes the daily weather data time series as input (for 25 years)
+
+The fully connected block's outputs are connected to the RNN hidden state (and cell state with LSTM) initial inputs (h0, c0), and replicated for selectable number of bottom layers if the nuber of the RNN layers > 1.
+    
+</div>
+
+<img src="img/FC_RNN_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
+<br>
+
+#### iI) The seq2seq model
 
 <div class="alert alert-block alert-warning">
 <b>The seq2seq model architecture contains the modules:</b>
@@ -22,21 +37,7 @@ the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fu
 </div>
 
 <img src="img/seq2seq_model_20250206.png" alt="Drawing" style="width: 800px;"/>
-
-#### ii) The RNN encoder with fully connected section [FC_RNN model]
-
-<div class="alert alert-block alert-warning">
-<b>The FC_RNN_Model architecture contains the modules:</b>
-
-1. The dense (fully connected) network for the static inputs = site info & forest variables (i.e. the starting year status)
-2. An RNN network the takes the daily weather data time series as input (for 25 years)
-
-The fully connected block's outputs are connected to the RNN hidden state (and cell state with LSTM) initial inputs (h0, c0), and replicated for selectable number of bottom layers if the nuber of the RNN layers > 1.
-    
-</div>
-
-<img src="img/FC_RNN_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
-
+<br>
 
 #### iii) Transformer encoder model
 
@@ -62,4 +63,6 @@ https://github.com/SheezaShabbir/Time-series-Analysis-using-LSTM-RNN-and-GRU/blo
 
 The Transformer encoder model:<br>
 https://pytorch.org/tutorials/beginner/transformer_tutorial.html<br>
+
+###NOTE: This repository is not ready!
 
