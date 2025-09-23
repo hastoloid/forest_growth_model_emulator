@@ -4,7 +4,7 @@ A Python tool to produce deep learning models for emulating the PREBASSO forest 
 The tool facilitates the training of three different neural network architectures to emulate the prediction task of the Rprebasso (Mäkelä, 1997; Minunno et al., 2016) forest growth model:<br>
 1) RNN encoder network
 2) Recurrent Neural Network (RNN) Encoder-decoder network
-3) Transformer encoder network. 
+3) vanilla transformer encoder network. 
 <br>
 The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions will be produced always for three species: pine, spruce (spr), and broadleaved (bl) species.<br><br>
 
