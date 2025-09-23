@@ -6,7 +6,7 @@ The tool facilitates the training of three different neural network architecture
 2) Recurrent Neural Network (RNN) Encoder-decoder network
 3) Transformer encoder network. 
 <br>
-The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions will be produced always for three species: pine, spruce (spr), and broadleaved (bl) species.
+The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions will be produced always for three species: pine, spruce (spr), and broadleaved (bl) species.<br>
 
 The data set for the model training and evaluation contains forest variable data from 28,666 field inventory plots in continental Finland that were used as the initial state of the sites to be simulated. These data were provided by The Finnish Forest Centre (FFC). Two separate data sets contain aggregated (yearly and monthly) climate data downloaded from Copernicus Climate Data Store (CDS) to provide realistic climate scenarios.
 
@@ -17,8 +17,6 @@ https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/metsatietoaineistot/met
 
 CDS climate data:<br>
 https://cds.climate.copernicus.eu/#!/home
-
-Mäkelä, A. (1997). A Carbon Balance Model of Growth and Self-Pruning in Trees Based on Structural Relationships. Forest Science, 43(1), 7–24. https://doi.org/10.1093/forestscience/43.1.7
 
 ***
 ### Network Architectures
@@ -91,5 +89,9 @@ https://pytorch.org/tutorials/beginner/transformer_tutorial.html<br>
 https://github.com/ForModLabUHel/Rprebasso
 
 ***
-##NOTE: This repository is not ready!
+### References:<br>
+Mäkelä, A. (1997). A Carbon Balance Model of Growth and Self-Pruning in Trees Based on Structural Relationships. Forest Science, 43(1), 7–24. https://doi.org/10.1093/forestscience/43.1.7
+
+***
+## NOTE: This repository is not ready!
 
