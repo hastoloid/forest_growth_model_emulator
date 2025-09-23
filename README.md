@@ -21,6 +21,7 @@ The fully connected block's outputs are connected to the RNN hidden state (and c
 <img src="img/FC_RNN_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
 <br>
 
+***
 #### iI) The seq2seq model
 
 <div class="alert alert-block alert-warning">
@@ -39,6 +40,7 @@ the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fu
 <img src="img/seq2seq_model_20250206.png" alt="Drawing" style="width: 800px;"/>
 <br>
 
+***
 #### iii) Transformer encoder model
 
 <div class="alert alert-block alert-warning">
@@ -64,5 +66,5 @@ https://github.com/SheezaShabbir/Time-series-Analysis-using-LSTM-RNN-and-GRU/blo
 The Transformer encoder model:<br>
 https://pytorch.org/tutorials/beginner/transformer_tutorial.html<br>
 
-###NOTE: This repository is not ready!
+##NOTE: This repository is not ready!
 
