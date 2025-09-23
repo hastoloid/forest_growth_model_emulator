@@ -4,8 +4,8 @@ A Python tool to produce deep learning models for emulating the PREBASSO forest 
 The tool facilitates the training of three different neural network architectures to emulate the prediction task of the Rprebasso (Mäkelä, 1997; Minunno et al., 2016) forest growth model:<br>
 1) RNN encoder network
 2) Recurrent Neural Network (RNN) Encoder-decoder network
-3) Vanilla transformer encoder network. 
-<br>
+3) Vanilla transformer encoder network.
+
 The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions will be produced always for three species: pine, spruce (spr), and broadleaved (bl) species.<br><br>
 
 The data set for the model training and evaluation contains forest variable data from 28,666 field inventory plots in continental Finland that were used as the initial state of the sites to be simulated. These data were provided by The Finnish Forest Centre (FFC). Two additional separate data sets contain aggregated (yearly and monthly) climate data downloaded from Copernicus Climate Data Store (CDS) to provide realistic climate scenarios.
@@ -23,7 +23,7 @@ https://cds.climate.copernicus.eu/#!/home
 
 Three different network architectures have been defined for the forest variable growth or carbon balance variable prediction task.
 
-#### i) The RNN encoder with fully connected section [FC_RNN model]
+#### i) The RNN encoder with fully connected section (FC_RNN)
 
 <div class="alert alert-block alert-warning">
 <b>The FC_RNN_Model architecture contains the modules:</b>
@@ -39,7 +39,7 @@ The fully connected block's outputs are connected to the RNN hidden state (and c
 <br>
 
 ***
-#### iI) The seq2seq model
+#### iI) The seq2seq model (S2S)
 
 <div class="alert alert-block alert-warning">
 <b>The seq2seq model architecture contains the modules:</b>
@@ -58,7 +58,7 @@ the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fu
 <br>
 
 ***
-#### iii) Vanilla transformer encoder model
+#### iii) Vanilla transformer encoder model (TXFORMER)
 
 <div class="alert alert-block alert-warning">
 <b>Transformer encoder</b>
