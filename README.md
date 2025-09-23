@@ -58,18 +58,17 @@ the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fu
 <br>
 
 ***
-#### iii) Transformer encoder model
+#### iii) Vanilla transformer encoder model
 
 <div class="alert alert-block alert-warning">
 <b>Transformer encoder</b>
 
-This net architecture use only the encoder part of the transformer [1]. The static inputs (= site info & forest variables) are concatenated with the sequential climate data inputs. The architecture includes the Positional encoding, the Multi-head attention and the Feed-Forward blocks of the transformer.
+This net architecture is arealization of the vanilla transformer (Vaswani et al. 2017) encoder. The static inputs (= site info & forest variables) are concatenated with the sequential climate data inputs. The architecture includes the Positional encoding, the Multi-head attention and the Feed-Forward blocks of the transformer.
     
 </div>
 
 <img src="img/TXFORMER_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
 
-Vaswani, A. et al. (2017) ‘Attention is all you need’, in Proceedings of the 31st International Conference on Neural Information Processing Systems. Red Hook, NY, USA: Curran Associates Inc. (NIPS’17), pp. 6000–6010.
 
 
 ***
@@ -91,6 +90,8 @@ https://github.com/ForModLabUHel/Rprebasso
 ***
 ### References:<br>
 Mäkelä, A. (1997). A Carbon Balance Model of Growth and Self-Pruning in Trees Based on Structural Relationships. Forest Science, 43(1), 7–24. https://doi.org/10.1093/forestscience/43.1.7
+<br>
+Vaswani, A. et al. (2017) ‘Attention is all you need’, in Proceedings of the 31st International Conference on Neural Information Processing Systems. Red Hook, NY, USA: Curran Associates Inc. (NIPS’17), pp. 6000–6010.
 
 ***
 ## NOTE: This repository is not ready!
