@@ -1,2 +1,91 @@
 # forest_growth_model_emulator
 A Python tool to produce deep learning models for emulating the PREBASSO forest growth and productivity model predictions.
+
+***
+### Network Architectures
+
+Three different network architectures have been defined for the forest variable growth or carbon balance variable prediction task.
+
+#### i) The seq2seq model
+
+<div class="alert alert-block alert-warning">
+<b>The seq2seq model architecture contains the modules:</b>
+
+1. The dense (fully connected) network for the static inputs = site info & forest variables (i.e. the starting year status)
+2. An encoder network the takes the daily weather data time series as input (for 25 years)
+3. A concatenation part that concatenates the hidden output of the encoder and the outputs of the linear network
+4. A decoder taking the combined input from the previous layers, and producing the predictions for nYears = 25
+
+The encoder block outputs are concatenated with the outputs from the fully connected block, and connected to
+the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fully connected block's outputs are split and divided between the decoder separate layers h0 inputs. With LSTM type RNN the h0 inputs are replicated for cell state input c0. 
+
+</div>
+
+<img src="seq2seq_model_20250206.png" alt="Drawing" style="width: 800px;"/>
+
+#### ii) The RNN encoder with fully connected section [FC_RNN model]
+
+<div class="alert alert-block alert-warning">
+<b>The FC_RNN_Model architecture contains the modules:</b>
+
+1. The dense (fully connected) network for the static inputs = site info & forest variables (i.e. the starting year status)
+2. An RNN network the takes the daily weather data time series as input (for 25 years)
+
+The fully connected block's outputs are connected to the RNN hidden state (and cell state with LSTM) initial inputs (h0, c0), and replicated for selectable number of bottom layers if the nuber of the RNN layers > 1.
+    
+</div>
+
+<img src="FC_RNN_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
+
+
+#### iii) Transformer encoder model
+
+<div class="alert alert-block alert-warning">
+<b>Transformer encoder</b>
+
+This net architecture use only the encoder part of the transformer [1]. The static inputs (= site info & forest variables) are concatenated with the sequential climate data inputs. The architecture includes the Positional encoding, the Multi-head attention and the Feed-Forward blocks of the transformer.
+    
+</div>
+
+<img src="TXFORMER_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
+
+Vaswani, A. et al. (2017) ‘Attention is all you need’, in Proceedings of the 31st International Conference on Neural Information Processing Systems. Red Hook, NY, USA: Curran Associates Inc. (NIPS’17), pp. 6000–6010.
+
+
+#### iiii) Cascade model
+
+The cascade modelling mode enables of producing a hierarchical [parent] - [sub-model] structure, in order to (presumably) achieve better accuracy for the carbon balance variable predictions. The 'cascadeTgtVars' are the variables that will be used as target variables of the cascade model (i.e. the sub-model of the current model). If these variables have been defined, then they will be added to the output training, validation and test data sets (saved as *.csv files), so that these *.csv files can be used as input data for training the sub-model, and the 'cascadeTgtVars' as the target variables. So this mechanism is only for saving the desired variables into the output text files.
+
+The 'cascadeInputVars' are the estimates produced by the parent model, and will be used as additional (time series) inputs for producing the cascade model (= sub-model).
+
+
+***
+The initial code for the above architectures has been adopted from the following sources:
+
+Seq2seq Model & FC_RNN encoder model:<br>
+https://github.com/bentrevett/pytorch-seq2seq/blob/master/1%20-%20Sequence%20to%20Sequence%20Learning%20with%20Neural%20Networks.ipynb
+
+The Transformer encoder model:<br>
+https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+
+***
+### 1) [Read parameters from file](#read_parameters)
+* Read the parameters for constructing the model and the data sets and for model training
+
+### 2) [Model definition](#model_definition)
+* Initialize the model (define architecture & init weights)
+* Define criterion = nn.MSELoss() or two types of custom losses
+* Define optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+* Define learning rate scheduler + decay factor (lr_scheduler.StepLR)
+
+### 3) [Construction of data sets](#construct_datasets)
+* Training data set
+* validation data set
+* Test data set
+
+### 4) [Model training](#model_training)
+
+### 5) Model evaluation
+* The accuracy of the produced model (or model read from file) verified against test set data
+
+***
