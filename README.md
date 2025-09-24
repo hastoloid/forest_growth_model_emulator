@@ -2,8 +2,8 @@
 A Python tool to produce deep learning models for emulating the PREBASSO forest growth and productivity model predictions.
 
 The tool facilitates the training of three different neural network architectures to emulate the prediction task of the Rprebasso (Mäkelä, 1997; Minunno et al., 2016) forest growth model:<br>
-1) RNN encoder network with fully connected input section
-2) Recurrent Neural Network (RNN) Encoder-decoder network with fully connected input section
+1) Recurrent Neural Network (RNN) encoder network with fully connected input section
+2) RNN Encoder-decoder network with fully connected input section
 3) Vanilla transformer encoder network.
 
 The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions are available for species-wise variables (three species): pine, spruce (spr), and broadleaved (bl) species (e.g. H_pine, H_spr, H_bl; i.e. no variables for totals).<br>
@@ -23,7 +23,7 @@ https://cds.climate.copernicus.eu/#!/home
 
 Three different network architectures have been defined for the forest variable growth or carbon balance variable prediction task.
 
-#### i) The RNN encoder with fully connected section (FC_RNN)
+#### i) The RNN encoder with fully connected input section (FC_RNN)
 
 <div class="alert alert-block alert-warning">
 <b>The FC_RNN_Model architecture contains the modules:</b>
