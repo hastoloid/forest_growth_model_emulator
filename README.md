@@ -80,7 +80,7 @@ https://github.com/bentrevett/pytorch-seq2seq/blob/master/1%20-%20Sequence%20to%
 https://github.com/SheezaShabbir/Time-series-Analysis-using-LSTM-RNN-and-GRU/blob/main/Pytorch_LSTMs%2CRNN%2CGRU_for_time_series_data.ipynb<br>
 
 The Transformer encoder model:<br>
-https://pytorch.org/tutorials/beginner/transformer_tutorial.html<br>
+https://pytorch-tutorials-preview.netlify.app/beginner/transformer_tutorial.html<br>
 
 
 ***
