@@ -738,102 +738,98 @@ class Art_Dataset(Dataset):
 
 def extractClimateData(dataSetDict, metaData, climData, climDataCols, verbose = False):
 
-    inputDataSiz = metaData.shape[0]
+	inputDataSiz = metaData.shape[0]
+	
+	if verbose:
+		print("inputDataSiz = ", inputDataSiz)
+		print("climData.shape = ", climData.shape)
+		print(climData.head())
 
-    if verbose:
-        print("inputDataSiz = ", inputDataSiz)
-        print("climData.shape = ", climData.shape)
-        print(climData.head())
+	# save the climate data items (corresponding to one site data) into  athre-dimensional
+	# numpy array with dimensions [seq_len, input_dim, inputDataSiz]
+	climateData = np.ndarray(shape=(dataSetDict['nYears'], dataSetDict['input_dim_enc'], inputDataSiz), dtype = float)
+	if verbose:
+		print("climateData.shape = ", climateData.shape)
 
-    # save the climate data items (corresponding to one site data) into  athre-dimensional
-    # numpy array with dimensions [seq_len, input_dim, inputDataSiz]
-    if dataSetDict['modelType'] == 'XFORMER':
-        climateData = np.ndarray(shape=(dataSetDict['nYears'], dataSetDict['d_model_tf'], inputDataSiz), dtype = float)
-    else:
-        climateData = np.ndarray(shape=(dataSetDict['nYears'], dataSetDict['input_dim_enc'], inputDataSiz), dtype = float)
+	# Get climate data column indices of the used climate variables:
+	climdataColIdx = [ii for ii, hdr in enumerate(climData.columns) if hdr in climDataCols]
 
-    if verbose:
-        print("climateData.shape = ", climateData.shape)
+	for idx in range(inputDataSiz):
+	
+		# Extract metadata for the current (idx) data row:
+		thisMetaData = metaData.loc[metaData.index[idx], :]
 
-    # Get climate data column indices of the used climate variables:
-    climdataColIdx = [ii for ii, hdr in enumerate(climData.columns) if hdr in climDataCols]
+		# Extract the climate data with of the climate data zone, scenario, and
+		# time period indicated by the 'climID_orig', 'scenario', and 'year_start' &
+		# 'year_end' parameters of the metadata:
+		thisClimID = thisMetaData['climID_orig']
+		thisScenario = thisMetaData['scenario']
+		thisYear_start = thisMetaData['year_start']
+		thisYear_end = thisMetaData['year_end']
+		
+		# if verbose:
+			# if idx == 0:
+				# print("thisClimID = ", thisClimID)
+				# print("thisScenario = ", thisScenario)
+				# print("thisYear_start = ", thisYear_start)
+				# print("thisYear_end = ", thisYear_end)
+		
+		# Extract the corresponding climate data:
+		# Construct the filter string for retrieving the climate data (Note, that the years
+		# indicated by the variables 'year_start' and 'year_end' in the metadata must both be 
+		# included in the range):
+		
+		# Reset climdata to the wholde climate data set here:
+		thisClimdata = climData
+		
+		filters_climData = ['scenario == ' + thisScenario[3:].replace("_", ""), 'climID == ' + str(thisClimID), 'YEAR >= ' + str(thisYear_start), 'YEAR <= ' + str(thisYear_end)]
 
-    for idx in range(inputDataSiz):
+		for thisFilter in filters_climData:
+			# if verbose and idx == 0:
+				# print("thisFilter = ", thisFilter)
+			thisClimdata = thisClimdata.query(thisFilter)
 
-        # Extract metadata for the current (idx) data row:
-        thisMetaData = metaData.loc[metaData.index[idx], :]
+		# if verbose and idx == 0:
+			# print("thisClimdata.shape = ", thisClimdata.shape)
+			
+		# Organize the climate data for the Encoder:
+		# The encoder input (climate data) size:
+		# enc_inp: [batch_size, seq_len, input_dim]
+		for thisYear in range(thisYear_start, thisYear_end+1):
+			# Get data for the current year (within period = [thisYear_start, thisYear_end]):
+			thisYearFilter = 'YEAR == ' + str(thisYear)
+			thisYearData = thisClimdata.query(thisYearFilter)
+			# Extract data to numpy array + flatten column-wise:
+			#print(thisYearData.iloc[:,climdataColIdx])
+			thisYearData_np = thisYearData.iloc[:,climdataColIdx].values.flatten(order='F')
+			#thisYearData_np = thisYearData[climDataCols].values.flatten(order='F')
 
-        # Extract the climate data with of the climate data zone, scenario, and
-        # time period indicated by the 'climID_orig', 'scenario', and 'year_start' &
-        # 'year_end' parameters of the metadata:
-        thisClimID = thisMetaData['climID_orig']
-        thisScenario = thisMetaData['scenario']
-        thisYear_start = thisMetaData['year_start']
-        thisYear_end = thisMetaData['year_end']
-        
-        # if verbose:
-            # if idx == 0:
-                # print("thisClimID = ", thisClimID)
-                # print("thisScenario = ", thisScenario)
-                # print("thisYear_start = ", thisYear_start)
-                # print("thisYear_end = ", thisYear_end)
-        
-        # Extract the corresponding climate data:
-        # Construct the filter string for retrieving the climate data (Note, that the years
-        # indicated by the variables 'year_start' and 'year_end' in the metadata must both be 
-        # included in the range):
-        
-        # Reset climdata to the wholde climate data set here:
-        thisClimdata = climData
-        
-        filters_climData = ['scenario == ' + thisScenario[3:].replace("_", ""), 'climID == ' + str(thisClimID), 'YEAR >= ' + str(thisYear_start), 'YEAR <= ' + str(thisYear_end)]
+			# if verbose and idx == 0 and thisYear == thisYear_start:
+				# print("thisYearData_np.shape = ", thisYearData_np.shape)
+			
+			# the encoder input dimensions are:  [batch_size, seq_len, input_dim] (batch_first = True):
+			y = np.expand_dims(thisYearData_np, axis=1)
+			#y = np.expand_dims(thisYearData_np, axis=(0,1))   # This adds the batch dimension which is actually added by the data loader (as the first dim)
+			if thisYear == thisYear_start:
+				encoderInput = y
+				#print(encoderInput.shape)
+			else:
+				# Concatenate in sequence dimension (i.e. year range dim = seq_len):
+				# After the for-loop the dimensions will be: dimensions [input_dim, seq_len]
+				encoderInput = np.concatenate((encoderInput, y), axis=1)
+				#encoderInput = np.concatenate((encoderInput, y), axis=0)
 
-        for thisFilter in filters_climData:
-            # if verbose and idx == 0:
-                # print("thisFilter = ", thisFilter)
-            thisClimdata = thisClimdata.query(thisFilter)
-
-        # if verbose and idx == 0:
-            # print("thisClimdata.shape = ", thisClimdata.shape)
-            
-        # Organize the climate data for the Encoder:
-        # The encoder input (climate data) size:
-        # enc_inp: [batch_size, seq_len, input_dim]
-        for thisYear in range(thisYear_start, thisYear_end+1):
-            # Get data for the current year (within period = [thisYear_start, thisYear_end]):
-            thisYearFilter = 'YEAR == ' + str(thisYear)
-            thisYearData = thisClimdata.query(thisYearFilter)
-            # Extract data to numpy array + flatten column-wise:
-            #print(thisYearData.iloc[:,climdataColIdx])
-            thisYearData_np = thisYearData.iloc[:,climdataColIdx].values.flatten(order='F')
-            #thisYearData_np = thisYearData[climDataCols].values.flatten(order='F')
-
-            # if verbose and idx == 0 and thisYear == thisYear_start:
-                # print("thisYearData_np.shape = ", thisYearData_np.shape)
-            
-            # the encoder input dimensions are:  [batch_size, seq_len, input_dim] (batch_first = True):
-            y = np.expand_dims(thisYearData_np, axis=1)
-            #y = np.expand_dims(thisYearData_np, axis=(0,1))   # This adds the batch dimension which is actually added by the data loader (as the first dim)
-            if thisYear == thisYear_start:
-                encoderInput = y
-                #print(encoderInput.shape)
-            else:
-                # Concatenate in sequence dimension (i.e. year range dim = seq_len):
-                # After the for-loop the dimensions will be: dimensions [input_dim, seq_len]
-                encoderInput = np.concatenate((encoderInput, y), axis=1)
-                #encoderInput = np.concatenate((encoderInput, y), axis=0)
-
-        # Transpose encoderInput to get the dimensions [seq_len, input_dim] (batch_size, added by dataLoader):
-        encoderInput = encoderInput.T
-        climateData[:,:,idx] = encoderInput
-        #encoderInput = np.expand_dims(encoderInput, axis=2)
-        #climateData[:,:,idx] = encoderInput[:,:,0]
-        
-        # if verbose and idx == 1:
-            # print("encoderInput.shape = ", encoderInput.shape)
-            # print(climateData[:,:,idx])
-        
-    return climateData
+		# Transpose encoderInput to get the dimensions [seq_len, input_dim] (batch_size, added by dataLoader):
+		encoderInput = encoderInput.T
+		climateData[:,:,idx] = encoderInput
+		#encoderInput = np.expand_dims(encoderInput, axis=2)
+		#climateData[:,:,idx] = encoderInput[:,:,0]
+		
+		# if verbose and idx == 1:
+			# print("encoderInput.shape = ", encoderInput.shape)
+			# print(climateData[:,:,idx])
+		
+	return climateData
 
 
 
@@ -862,32 +858,15 @@ class ToTensor(object):
 #
 # This routine calls the function create_datasets() for generating data
 # sets (train, valid & test).
-#
-# setList       (list of strings) The list of the sets () to be constructed. 
-#               Default = ['train', 'valid', 'test']
-#
-# shuffles      (list of booleans) A flag for each set to indicate if them
-#               set will be shuffled when evaluated.
-#               Default = [True, True, False] i.e. the test set will not be 
-#               shuffled.
-#
-# setLabels     (list of integers) A list of integers to map the data vectors
-#               within the input data table (*.csv file) to the three sets.
-#               Default = [1, 2, 3], i.e. the vectors with label 1 will be
-#               assigned to the training set, vectors with label 2 to the 
-#               validation set, and vectors with label 3 to the etst set.
-#               The user can re-define the roles of the input data table by
-#               giving the set labels 1, 2, and 3 in different order.
 # --------------------------------------------------------------------------
-def constructDataSets(paramDict, setList = ['train', 'valid', 'test'], shuffles = [True, True, False], setLabels = [1, 2, 3], verbose = True):
+def constructDataSets(paramDict, setList = ['train', 'valid', 'test'], shuffles = [True, True, False], verbose = True):
 
 	# paramDict contains most of the variables needed in Art_Dataset_CPU:
 	dataSetDict = paramDict
 
 	if 'train' in setList:
 		print("dataset_train: ")
-		dataSetDict['setLabel'] = setLabels[0]
-		#dataSetDict['setLabel'] = 1
+		dataSetDict['setLabel'] = 1
 		dataset_train = Art_Dataset(dataSetDict=dataSetDict, transform=transforms.Compose([ToTensor()]))
 		print("len(dataset_train) = ", len(dataset_train))
 		print("")
@@ -896,8 +875,7 @@ def constructDataSets(paramDict, setList = ['train', 'valid', 'test'], shuffles 
 		
 	if 'valid' in setList:
 		print("dataset_valid: ")
-		dataSetDict['setLabel'] = setLabels[1]
-		#dataSetDict['setLabel'] = 2
+		dataSetDict['setLabel'] = 2
 		dataset_valid = Art_Dataset(dataSetDict=dataSetDict, transform=transforms.Compose([ToTensor()]))
 		print("len(dataset_valid) = ", len(dataset_valid))
 		print("")
@@ -906,8 +884,7 @@ def constructDataSets(paramDict, setList = ['train', 'valid', 'test'], shuffles 
 
 	if 'test' in setList:
 		print("dataset_test: ")
-		dataSetDict['setLabel'] = setLabels[2]
-		#dataSetDict['setLabel'] = 3
+		dataSetDict['setLabel'] = 3
 		dataset_test = Art_Dataset(dataSetDict=dataSetDict, transform=transforms.Compose([ToTensor()]))
 		print("len(dataset_test) = ", len(dataset_test))
 		print("")

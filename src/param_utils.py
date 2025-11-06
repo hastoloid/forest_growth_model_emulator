@@ -416,8 +416,6 @@ def parseModelParams(parameterFile, nullReturn = None, verbose = True):
 
 # parseModelParameters(...)
 #
-# Deprecated!
-#
 # A function to read parameters from textfile using the methods of Params class.
 # Inputs:
 #       parameterFile:      text file with parameters as (name, value) pairs ('=' as separator).

@@ -17,10 +17,6 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
-import matplotlib.cm as cm
-
-import seaborn as sns
 
 from scipy.spatial import distance_matrix
 
@@ -522,87 +518,83 @@ def computeResults_oldest(targets, predictions, targetVars, FOMs = ['RMSE', 'RMS
 
 def compute_metrics(y_true, y_pred):
 
-    # Ensure that the input arrays are two-dimensional.
-    # Each column represents different variable:
-    if y_true.ndim == 1:
-        y_true = np.expand_dims(y_true, 1)
-    if y_pred.ndim == 1:
-        y_pred = np.expand_dims(y_pred, 1)
+	# Ensure that the input arrays are two-dimensional:
+	if y_true.ndim == 1:
+		y_true = np.expand_dims(y_true, 1)
+	if y_pred.ndim == 1:
+		y_pred = np.expand_dims(y_pred, 1)
 
-    num_variables = y_true.shape[1]
-    # Define lists for output dictionary:
-    rmse_list, bias_list, r2_list, rmsep_list, biasp_list, tgtMean_list = [], [], [], [], [], []
-    # Define Numpy arrays for alternative outputs (RMSE, RMSE%, BIAS, BIAS%, R2):
-    nrFoms = 5
-    fomArr = np.zeros((nrFoms,num_variables))
+	num_variables = y_true.shape[1]
+	# Define lists for output dictionary:
+	rmse_list, bias_list, r2_list, rmsep_list, biasp_list = [], [], [], [], []
+	# Define Numpy arrays for alternative outputs (RMSE, RMSE%, BIAS, BIAS%, R2):
+	nrFoms = 5
+	fomArr = np.zeros((nrFoms,num_variables))
 
-    y_true_mean = np.mean(y_true, axis=0)
-    # Assign y_true_mean zero elements to -1, if any:
-    #y_true_mean[y_true_mean < 1e-6] = -1
+	y_true_mean = np.mean(y_true, axis=0)
+	# Assign y_true_mean zero elements to -1, if any:
+	#y_true_mean[y_true_mean < 1e-6] = -1
 
-    # Loop over the variables:
-    for i in range(num_variables):
-        y_true_variable = y_true[:, i]
-        y_pred_variable = y_pred[:, i]
+	for i in range(num_variables):
+		y_true_variable = y_true[:, i]
+		y_pred_variable = y_pred[:, i]
 
-        # Compute RMSE
-        rmse = np.sqrt(mean_squared_error(y_true_variable, y_pred_variable))
-        rmse_list.append(rmse)
-        fomArr[0,i] = rmse
+		# Compute RMSE
+		rmse = np.sqrt(mean_squared_error(y_true_variable, y_pred_variable))
+		rmse_list.append(rmse)
+		fomArr[0,i] = rmse
 
-        # Compute Bias
-        bias = np.mean(y_pred_variable - y_true_variable)
-        bias_list.append(bias)
-        fomArr[2,i] = bias
-        
-        # Assure that y_true_mean[i] is positive to prevent
-        # change of sign for relative errors:
-        if y_true_mean[i] < 0:
-            y_true_mean[i] *= -1
+		# Compute Bias
+		bias = np.mean(y_pred_variable - y_true_variable)
+		bias_list.append(bias)
+		fomArr[2,i] = bias
+		
+		# Assure that y_true_mean[i] is positive to prevent
+		# change of sign for relative errors:
+		if y_true_mean[i] < 0:
+			y_true_mean[i] *= -1
 
-        # Compute rmse% & bias% + check for zero division:
-        if y_true_mean[i] == 0:
-            rmsep = -99.0
-            biasp = -99.0
-        else:
-            rmsep = 100*rmse/y_true_mean[i]
-            biasp = 100*bias/y_true_mean[i]
-        rmsep_list.append(rmsep)
-        biasp_list.append(biasp)
-        tgtMean_list.append(y_true_mean[i])
-        fomArr[1,i] = rmsep
-        fomArr[3,i] = biasp
+		# Compute rmse% & bias% + check for zero division:
+		if y_true_mean[i] == 0:
+			rmsep = -99.0
+			biasp = -99.0
+		else:
+			rmsep = 100*rmse/y_true_mean[i]
+			biasp = 100*bias/y_true_mean[i]
+		rmsep_list.append(rmsep)
+		biasp_list.append(biasp)
+		fomArr[1,i] = rmsep
+		fomArr[3,i] = biasp
 
-        # Compute r2-score
-        r2 = r2_score(y_true_variable, y_pred_variable)
-        r2 = max(r2, 0)
-        r2_list.append(r2)
-        fomArr[4,i] = r2
+		# Compute r2-score
+		r2 = r2_score(y_true_variable, y_pred_variable)
+		r2 = max(r2, 0)
+		r2_list.append(r2)
+		fomArr[4,i] = r2
 
-    N = y_true.shape[0]
-    rmse_mean = sum(rmse_list)/len(rmse_list)
-    rmsep_mean = sum(rmsep_list)/len(rmsep_list)
-    bias_mean = sum(bias_list)/len(bias_list)
-    biasp_mean = sum(biasp_list)/len(biasp_list)
-    r2_mean = sum(r2_list)/len(r2_list)
+	N = y_true.shape[0]
+	rmse_mean = sum(rmse_list)/len(rmse_list)
+	rmsep_mean = sum(rmsep_list)/len(rmsep_list)
+	bias_mean = sum(bias_list)/len(bias_list)
+	biasp_mean = sum(biasp_list)/len(biasp_list)
+	r2_mean = sum(r2_list)/len(r2_list)
 
-    fomDict = {
-        'RMSE': rmse_list,
-        'RMSEp': rmsep_list,
-        'BIAS': bias_list,
-        'BIASp': biasp_list,
-        'R2': r2_list,
-        'tgtMean': tgtMean_list,
-        'RMSE_mean': rmse_mean,
-        'RMSEp_mean': rmsep_mean,
-        'BIAS_mean': bias_mean,
-        'BIASp_mean': biasp_mean,
-        'R2_mean': r2_mean,
-        'N': N,
-        'y_true_mean': y_true_mean
-        }
+	fomDict = {
+		'RMSE': rmse_list,
+		'RMSEp': rmsep_list,
+		'BIAS': bias_list,
+		'BIASp': biasp_list,
+		'R2': r2_list,
+		'RMSE_mean': rmse_mean,
+		'RMSEp_mean': rmsep_mean,
+		'BIAS_mean': bias_mean,
+		'BIASp_mean': biasp_mean,
+		'R2_mean': r2_mean,
+		'N': N,
+		'y_true_mean': y_true_mean
+		}
 
-    return fomDict, fomArr
+	return fomDict, fomArr
 	
 	
 
@@ -1347,20 +1339,7 @@ def plotTimeSeriesResults(targets, preds, targetVars, figSize = (8,6), startIdx 
 
 # relPointDensity()
 #
-# This function computes the relative point density for heatmap points.
-# The point density is calculated for each input data point by counting 
-# all the points that are closer than the specified threshold distance. 
-# The threshold distance is given as relative measure wrt. to the maximum
-# mutual distance of any two points in the point data set. The method uses
-# the scipy.spatial.distance_matrix() function with p = 2 (i.e. Euclidean 
-# distance) for computing the distance matrix between all the inout points.
-#
-# points        (N x 2 Numpy matrix) The input data points
-# maxDist_rel   (scalar [0, 1]) The relative distance (kernel distance) for
-#               computing the point density (default = 0.1)
-# nonLinMapping (boolean) If True, the computed relative point density will
-#               modified by taking the square root of the original poind 
-#               densities. This smoothens the output heat map.
+# This function compter the relative point density for heatmap plots.
 
 def relPointDensity(points, maxDist_rel = 0.1, nonLinMapping = False):
 
@@ -1372,7 +1351,8 @@ def relPointDensity(points, maxDist_rel = 0.1, nonLinMapping = False):
     # Set distance threshold relative to the max distance:
     maxDist = maxDist_rel * np.max(distMtx)
 
-    # For each point, count the points closer than the specified distance threshold:
+    # For each point, count the points closer than the specified 
+    # max distance:
     for i in range(points.shape[0]):
         relPointDensity[i] = (distMtx[i,:] < maxDist).sum() - 1
         
@@ -1389,324 +1369,67 @@ def relPointDensity(points, maxDist_rel = 0.1, nonLinMapping = False):
     return relPointDensity
 
 
+def scatterPlots(targets, preds, fig = None, ax = None, nrPlotsPerRow = 3, heatScatter = True, plotColor = 'blue', targetVarStr = None, xlabelStr = None, ylabelStr = None, title = None, metadata = None, maxDist_rel = 0.1, nonLinMapping = False, margin_p = [0.1, 0.1], fomBase = [0.05, 0.05], tgtVarBase = [0.3, 0.1], outFile = None, printFoMs = False, fontSizDict = None, axLimits = None):
 
-# scatterPlots()
-#
-# This function plots the scatterplot of the input data.
-# 
-# X                 (N x 1 Numpy array) The x-axis variable in the plot.
-# Y                 (N x 1 Numpy array) The y-axis variable in the plot.
-# heatMap           (boolean) A flag indicating if heatmap is to be plotted (default = False)
-# plotColor         (float or array-like) The marker colors. See matplotlib.axes.Axes.scatter 
-#                   for Possible values (default = 'blue')
-# markerSize        (scalar) The marker size in points**2. See matplotlib.axes.Axes.scatter (default = 7)
-# targetVarStr      (str) The name of the variable plotted (default = None)
-# xlabelStr         (str) x-axis label (default = None)
-# ylabelStr         (str) y-axis label (default = None)
-# title             (str) Plot ttle (default = None)
-# maxDist_rel       (scalar [0, 1]) The relative distance (kernel distance) for
-#                   computing the point density for heat map (default = 0.1)
-# nonLinMapping     (boolean) Non-linear mapping of relative point distances in heatmap 
-#                   (see relPointDensity())
-# margin_p          (1x2 vector of float) Relative margin for setting x-, and y-axis scales.
-#                   The margin margin_p is added to the total range of the data points.
-#                   I.e if margin_p = [0.1 0.2] then add 10% margin for x-axis, and 20% margin
-#                   for y-axis. Overridden by 'axLimits'.
-# axLimits          (1 x 4 vector of float) Absolute limits for the axes in fotrmat
-#                   [min_x, max_x, min_y, max_y]. (default = None)
-# fomBase           (1x2 vector of float) Relative location of the figures-of-merits (FoMs)
-#                   within the plot area (default = [0.05, 0.05]). Relative to upper left 
-#                   corner of the figure.
-# tgtVarBase        (1x2 vector of float) Relative location of the target variable sring
-#                   within the plot area (default = [0.3, 0.1])
-# outFile           (filepath) If given, the plot figure will be written into a *.png file
-#                   with print resolution 600 dpi.
-#
-# fomDict           (dict of figures-of-merits) The format of this dict is:
-#                   
-#                    fomDict = {
-#                        'RMSE': rmse,
-#                        'RMSEp': rmse%,
-#                        'BIAS': bias,
-#                        'BIASp': bias%,
-#                        'R2': r2,
-#                        'y_true_mean': y_true_mean
-#                        }
-#
-# fontSizDict       (dict of fontsizes)
-#
-#                    fontSizDict = {
-#                        'fontSiz_xLabel': fontSiz_xLabel,
-#                        'fontSiz_yLabel': fontSiz_yLabel,
-#                        'fontSiz_xTicks': fontSiz_xTicks,
-#                        'fontSiz_yTicks': fontSiz_yTicks,
-#                        'fontSiz_legend': fontSiz_legend,
-#                        'fontSiz_title': fontSiz_title,
-#                        'fontSiz_text': fontSiz_text       # Font size of all text printed within the figure area
-#                        }
-#
-# plotOneToOne      (boolean) If True, the x = y line will be plotted (default = Tre)
-#
-# vmin, vmax        (float) vmin and vmax define the data range that the colormap covers.
-#                   See matplotlib.axes.Axes.scatter (default: vmin = 0, vmax = 1)
-# cmap              (colormap) The colormap for the heatmap, and the colorbar, if plotted 
-#                   (default = 'turbo')
-# plotColorBar      (boolean) If True, the colorbar of the colormap will be plotted along
-#                   with the heatmap. No effect, if nominal scatterplot have been selected.
-#                   (default = False)
+    #commonCols = ['siteID', 'climID_orig', 'scenario', 'year_start', 'year_end', 'age_pine', 'age_spr', 'age_bl', 'H_pine', 'H_spr', 'H_bl', 'D_pine', 'D_spr', 'D_bl', 'BA_pine', 'BA_spr', 'BA_bl', 'siteType']
 
-def scatterPlots(X, Y, fig = None, ax = None, nrPlotsPerRow = 3, heatMap = False, plotResiduals = False, 
-                plotColor = 'blue', markerSize = 7, targetVarStr = None, xlabelStr = None, ylabelStr = None, 
-                title = None, maxDist_rel = 0.1, nonLinMapping = False, margin_p = [0.1, 0.1], 
-                fomBase = [0.05, 0.05], tgtVarBase = [0.3, 0.1], outFile = None, fomDict = None, 
-                fontSizDict = None, axLimits = None, plotOneToOne = True, plotZeroLine = False, 
-                vmin=0, vmax=1, cmap = 'turbo', plotColorBar = False):
-
-    #print("plotOneToOne = ", plotOneToOne)
-    #print("plotZeroLine = ", plotZeroLine)
-    
     tgtVarUnits = '[$m^3/(ha * y)$]'
 
     # -----------------------------------------------------
 
-    if plotResiduals:
-        Y = Y - X
-
     if fontSizDict is not None:
         fontSiz_xLabel = fontSizDict['fontSiz_xLabel']
         fontSiz_yLabel = fontSizDict['fontSiz_yLabel']
         fontSiz_xTicks = fontSizDict['fontSiz_xTicks']
         fontSiz_yTicks = fontSizDict['fontSiz_yTicks']
         fontSiz_legend = fontSizDict['fontSiz_legend']
-        fontSiz_title = fontSizDict['fontSiz_title']
-        fontSiz_text = fontSizDict['fontSiz_text']
     else:
         fontSiz_xLabel = 16
         fontSiz_yLabel = 16
         fontSiz_xTicks = 14
         fontSiz_yTicks = 14
         fontSiz_legend = 14
-        fontSiz_title = 12
-        fontSiz_text = 10
 
-    if heatMap:
-        points = np.concatenate((X, Y), axis=1)
+    if heatScatter:
+        points = np.concatenate((targets, preds), axis=1)
         dens = relPointDensity(points, maxDist_rel = maxDist_rel, nonLinMapping = nonLinMapping)
-        ax.scatter(X, Y, s=markerSize, c=dens, vmin=vmin, vmax=vmax, cmap = cmap)
+        ax.scatter(targets, preds, s=7, c=dens, vmin=0, vmax=1, cmap = 'turbo')
     else:
-        ax.scatter(X, Y, s=markerSize, c=plotColor)
+        ax.scatter(targets, preds, s=7, c=plotColor)
+
+    # Plot identity line:
+    pt = (0, 0)
+    ax.axline(pt, slope=1, color='black', linewidth=0.5)
+    #plt.plot(targets,targets,'k-') # identity line
 
     ax.ticklabel_format(useOffset=False)
 
-    # Get data min & max values, and compute data ranges:
-    maxValX = np.max(X)
-    minValX = np.min(X)
-    maxValY = np.max(Y)
-    minValY = np.min(Y)
+    N = targets.shape[0]
 
+    
+    
     # The next if - else statement should be cleaned!
     if axLimits is None:
-        # Compute axes limits from data range with given margins:
-        valRangeX = maxValX - minValX
-        valRangeY = maxValY - minValY
-        axxMin_x = minValX-margin_p[0]*valRangeX
-        axxMax_x = maxValX+margin_p[0]*valRangeX
-        axxMin_y = minValY-margin_p[1]*valRangeY
-        axxMax_y = maxValY+margin_p[1]*valRangeY
-    else:
-        # The axes limits given by the user:
-        axxMin_x = axLimits[0]
-        axxMax_x = axLimits[1]
-        axxMin_y = axLimits[2]
-        axxMax_y = axLimits[3]
-    
-    # Compute the range along the axes:
-    axxRange_x = axxMax_x - axxMin_x
-    axxRange_y = axxMax_y - axxMin_y
-    
-    # Set axes limits:
-    ax.set_xlim(axxMin_x, axxMax_x) # Plot with margin in x-direction
-    ax.set_ylim(axxMin_y, axxMax_y) # Plot with margin in y-direction
-
-    if plotOneToOne:
-        # Plot identity line:
-        try:
-            pt = (axxMin_x, axxMin_y)
-            ax.axline(pt, slope=1, color='gray', linewidth=0.5)
-        except:
-            endPts =  np.array([[axxMin_x, axxMin_y], [axxMax_x, axxMax_y]])
-            ax.plot(endPts, endPts, color='gray', linestyle='-', linewidth=0.5)
-
-    if plotZeroLine:
-        # Plot zero line:
-        endPts =  np.array([axxMin_x, axxMax_x])
-        ax.plot(endPts, np.array([0, 0]), color='gray', linestyle='-', linewidth=0.5)
-            
-    if fomDict is not None:
-        # The base (test starting location) in percentages of the whole range:
-        base_x = fomBase[0]
-        # base_y = from the top of the plot graph:
-        base_y = fomBase[1]
-        step_y = 0.01 * fontSiz_text
-        #step_y = 0.1
-
-        ax.text(base_x*axxRange_x, axxMax_y-base_y*axxRange_y, "RMSE%: {0:.1f}".format(fomDict['RMSEp']), fontsize = fontSiz_text)
-        ax.text(base_x*axxRange_x, axxMax_y-(base_y+step_y)*axxRange_y, "BIAS%: {0:.1f}".format(fomDict['BIASp']), fontsize = fontSiz_text)
-        ax.text(base_x*axxRange_x, axxMax_y-(base_y+2*step_y)*axxRange_y, "R$^2$: {0:.2f}".format(fomDict['R2']), fontsize = fontSiz_text)
-
-        # Print the target mean value as well: 
-        tgtMeanStr = str(round(fomDict['y_true_mean'], 1)) 
-        ax.text(base_x*axxRange_x, axxMax_y-(base_y+3*step_y)*axxRange_y, r"$\bar{x}: $" + tgtMeanStr, fontsize = fontSiz_text)
-
-        # Print numer of samples also:
-        N = X.shape[0]
-        ax.text(base_x*axxRange_x, axxMax_y-(base_y+4*step_y)*axxRange_y, "N: {0:.0f}".format(N), fontsize = fontSiz_text)
-
-    ax.tick_params(axis='x', length=5, direction='in', width=1)
-    ax.tick_params(axis='y', length=5, direction='in', width=1)
-
-    if xlabelStr is not None:
-        ax.set_xlabel(xlabelStr, fontsize=fontSiz_xLabel)
-
-    if ylabelStr is not None:
-        ax.set_ylabel(ylabelStr, fontsize=fontSiz_yLabel)
-    
-    if targetVarStr is not None:
-        tgtVarBase_x = tgtVarBase[0]
-        tgtVarBase_y = tgtVarBase[1]
-        ax.text(tgtVarBase_x*axxRange_x, axxMin_y+tgtVarBase_y*axxRange_y, targetVarStr, fontsize = fontSiz_text)
-
-    if title is not None:
-        ax.set_title(title, fontsize = fontSiz_title)
-        
-    if plotColorBar:
-        norm = mcolors.Normalize(vmin=vmin, vmax=vmax, clip=False)
-        cb = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax)
-        cb.set_label(label='Rel. point density', size = fontSiz_yLabel)
-
-    if outFile is not None:
-        plt.savefig(outFile, dpi=600, format = 'png')
-        
-    return None
-
-
-# scatterPlots_L()
-#
-# This function plots the scatterplot of the input data. (This is the function sent to
-# Laura 1.11.2024. This is the cleaned version of scatterPlots(), and requires the fomDict
-# as input).
-# 
-# X                 (N x 1 Numpy array) The x-axis variable in the plot.
-# Y                 (N x 1 Numpy array) The y-axis variable in the plot.
-# heatMap           (boolean) A flag indicating if heatmap is to be plotted (default = True)
-# plotColor         (float or array-like) The marker colors. See matplotlib.axes.Axes.scatter 
-#                   for Possible values (default = 'blue')
-# markerSize        (scalar) The marker size in points**2. See matplotlib.axes.Axes.scatter (default = 7)
-# targetVarStr      (str) The name of the variable plotted (default = None)
-# xlabelStr         (str) x-axis label (default = None)
-# ylabelStr         (str) y-axis label (default = None)
-# title             (str) Plot ttle (default = None)
-# maxDist_rel       (scalar [0, 1]) The relative distance (kernel distance) for
-#                   computing the point density for heat map (default = 0.1)
-# nonLinMapping     (boolean) Non-linear mapping of relative point distances in heatmap 
-#                   (see relPointDensity())
-# margin_p          (1x2 vector of float) Relative margin for setting x-, and y-axis scales.
-#                   The margin margin_p is added to the total range of the data points.
-#                   I.e if margin_p = [0.1 0.2] then add 10% margin for x-axis, and 20% margin
-#                   for y-axis. Overridden by 'axLimits'.
-# axLimits          (1 x 4 vector of float) Absolute limits for the axes in fotrmat
-#                   [min_x, max_x, min_y, max_y]. (default = None)
-# fomBase           (1x2 vector of float) Relative location of the figures-of-merits (FoMs)
-#                   within the plot area (default = [0.05, 0.05])
-# tgtVarBase        (1x2 vector of float) Relative location of the target variable sring
-#                   within the plot area (default = [0.3, 0.1])
-# outFile           (filepath) If given, the plot figure will be written into a *.png file
-#                   with print resolution 600 dpi.
-# fomDict           (dict of figures-of-merits) The format of this dict is:
-#                   
-#                    fomDict = {
-#                        'RMSE': rmse,
-#                        'RMSEp': rmse%,
-#                        'BIAS': bias,
-#                        'BIASp': bias%,
-#                        'R2': r2,
-#                        'y_true_mean': y_true_mean
-#                        }
-#
-# fontSizDict       (dict of fontsizes)
-#
-#                    fontSizDict = {
-#                        'fontSiz_xLabel': fontSiz_xLabel,
-#                        'fontSiz_yLabel': fontSiz_yLabel,
-#                        'fontSiz_xTicks': fontSiz_xTicks,
-#                        'fontSiz_yTicks': fontSiz_yTicks,
-#                        'fontSiz_legend': fontSiz_legend,
-#                        }
-#
-# plotOneToOne      (boolean) If True, the x = y line will be plotted (default = Tre)
-#
-# vmin, vmax        (float) vmin and vmax define the data range that the colormap covers.
-#                   See matplotlib.axes.Axes.scatter (default: vmin = 0, vmax = 1)
-# cmap              (colormap) The colormap for the heatmap, and the colorbar, if plotted 
-#                   (default = 'turbo')
-# plotColorBar      (boolean) If True, the colorbar of the colormap will be plotted along
-#                   with the heatmap. No effect, if nominal scatterplot have been selected.
-#                   (default = False)
-
-def scatterPlots_L(X, Y, fig = None, ax = None, heatMap = True, plotColor = 'blue', markerSize = 7, targetVarStr = None, xlabelStr = None, ylabelStr = None, title = None, maxDist_rel = 0.1, nonLinMapping = False, margin_p = [0.1, 0.1], fomBase = [0.05, 0.05], tgtVarBase = [0.3, 0.1], outFile = None, fomDict = None, fontSizDict = None, axLimits = None, plotOneToOne = True, vmin=0, vmax=1, cmap = 'turbo', plotColorBar = False):
-
-    # -----------------------------------------------------
-    if fontSizDict is not None:
-        fontSiz_xLabel = fontSizDict['fontSiz_xLabel']
-        fontSiz_yLabel = fontSizDict['fontSiz_yLabel']
-        fontSiz_xTicks = fontSizDict['fontSiz_xTicks']
-        fontSiz_yTicks = fontSizDict['fontSiz_yTicks']
-        fontSiz_legend = fontSizDict['fontSiz_legend']
-    else:
-        fontSiz_xLabel = 16
-        fontSiz_yLabel = 16
-        fontSiz_xTicks = 14
-        fontSiz_yTicks = 14
-        fontSiz_legend = 14
-    
-    # Plot heatmap, if desired:
-    if heatMap:
-        points = np.concatenate((X, Y), axis=1)
-        dens = relPointDensity(points, maxDist_rel = maxDist_rel, nonLinMapping = nonLinMapping)
-        ax.scatter(X, Y, s=markerSize, c=dens, vmin=vmin, vmax=vmax, cmap = cmap)
-    else:
-        ax.scatter(X, Y, s=markerSize, c=plotColor)
-
-    if plotOneToOne:
-        # Plot identity line:
-        pt = (0, 0)
-        ax.axline(pt, slope=1, color='black', linewidth=0.5)
-        #plt.plot(X,X,'k-') # identity line
-
-    ax.ticklabel_format(useOffset=False)
-
-    # Extract number of samples:
-    N = X.shape[0]
-    
-    # Set plot axes limits:
-    if axLimits is None:
-        # Compute axes limits with given margins:
-        maxValX = max(X)
-        minValX = min(X)
+        maxValX = max(targets)
+        minValX = min(targets)
         valRangeX = maxValX - minValX
         axxMin_x = minValX-margin_p[0]*valRangeX
         axxMax_x = maxValX+margin_p[0]*valRangeX
         
-        maxValY = max(Y)
-        minValY = min(Y)
+        maxValY = max(preds)
+        minValY = min(preds)
+        
         valRangeY = maxValY - minValY
-        axxMin_y = minValY-margin_p[1]*valRangeY
+        #axxMin_y = minValY-margin_p[1]*valRangeY
         axxMax_y = maxValY+margin_p[1]*valRangeY
 
-        ax.set_xlim(axxMin_x, axxMax_x) # Plot with margin in x-direction
+        # Force min y-value to zero:
+        axxMin_y =0
+        #ax.set_ylim(0, axxMax_y) # Plot with margin in y-direction
+        #ax.set_xlim(0, axxMax_x) # Plot with margin in x-direction, too
         ax.set_ylim(axxMin_y, axxMax_y) # Plot with margin in y-direction
+        ax.set_xlim(axxMin_y, axxMax_x) # Plot with margin in x-direction, too
     else:
-        # Use user defined limits for the axes:
         maxValX = axLimits[1]
         minValX = axLimits[0]
         valRangeX = maxValX - minValX
@@ -1715,10 +1438,18 @@ def scatterPlots_L(X, Y, fig = None, ax = None, heatMap = True, plotColor = 'blu
         minValY = axLimits[2]
         axxMin_y = axLimits[2]
         valRangeY = maxValY - minValY
+        #valRangeY = axLimits[3] - axLimits[2]
         
         ax.set_xlim(axLimits[0], axLimits[1]) # Plot with margin in x-direction, too
         ax.set_ylim(axLimits[2], axLimits[3]) # Plot with margin in y-direction
 
+    #ax.legend(fontsize = fontSiz_legend)
+    #ax.set_xlabel('Year', fontsize=fontSiz_xLabel)
+
+    #ylabelStr = targetVar.replace('_', ' / ')
+    #ylabelStr = ylabelStr.replace('spr', 'spruce')
+    #ylabelStr = ylabelStr.replace('bl', 'broadleaved')
+    #ylabelStr = ylabelStr + ' ' + tgtVarUnits
     if ylabelStr is not None:
         ax.set_ylabel(ylabelStr, fontsize=fontSiz_yLabel)
     
@@ -1733,22 +1464,53 @@ def scatterPlots_L(X, Y, fig = None, ax = None, heatMap = True, plotColor = 'blu
     # THE DATA MAX & MIN VALUES. PRESENTLY THE CODE IS A MISXTURE OF CONFUSING ASSIGNMENTS!
     # CORRECT!
     # -------------------------------------------------------------------------------------
-    if fomDict is not None:
-        ax.text(base_x*valRangeX, maxValY-base_y*valRangeY, "RMSE%: {0:.1f}".format(fomDict['RMSEp']), fontdict=None)
-        ax.text(base_x*valRangeX, maxValY-(base_y+step_y)*valRangeY, "BIAS%: {0:.1f}".format(fomDict['BIASp']), fontdict=None)
-        ax.text(base_x*valRangeX, maxValY-(base_y+2*step_y)*valRangeY, "R$^2$: {0:.2f}".format(fomDict['R2']), fontdict=None)
-        #ax.text(base_x*valRangeX, maxValY-(base_y+3*step_y)*valRangeY, "mean: {0:.1f}".format(fomDict['y_true_mean']), fontdict=None)
+    if printFoMs:
+        fomDict, fomArr = compute_metrics(targets, preds)
+        ax.text(base_x*valRangeX, maxValY-base_y*valRangeY, "RMSE%: {0:.1f}".format(fomDict['RMSEp'][0]), fontdict=None)
+        ax.text(base_x*valRangeX, maxValY-(base_y+step_y)*valRangeY, "BIAS%: {0:.1f}".format(fomDict['BIASp'][0]), fontdict=None)
+        ax.text(base_x*valRangeX, maxValY-(base_y+2*step_y)*valRangeY, "R$^2$: {0:.2f}".format(fomDict['R2'][0]), fontdict=None)
+        #ax.text(base_x*valRangeX, maxValY-(base_y+3*step_y)*valRangeY, "mean: {0:.1f}".format(fomDict['y_true_mean'][0]), fontdict=None)
 
         # Print the target mean value as well: 
-        tgtMeanStr = str(round(fomDict['y_true_mean'], 1)) 
+        tgtMeanStr = str(round(fomDict['y_true_mean'][0], 1)) 
         ax.text(base_x*valRangeX, maxValY-(base_y+3*step_y)*valRangeY, r"$\bar{x}: $" + tgtMeanStr)
-        
-        # Print numer of samples also:
+
         ax.text(base_x*valRangeX, maxValY-(base_y+4*step_y)*valRangeY, "N: {0:.0f}".format(N), fontdict=None)
+
+        #ax.text(base_x*valRangeX, maxValY-0.05*valRangeY, "RMSE%: {0:.1f}".format(fomDict['RMSEp'][0]), fontdict=None)
+        #ax.text(base_x*valRangeX, maxValY-0.15*valRangeY, "BIAS%: {0:.1f}".format(fomDict['BIASp'][0]), fontdict=None)
+        #ax.text(base_x*valRangeX, maxValY-0.25*valRangeY, "R2: {0:.2f}".format(fomDict['R2'][0]), fontdict=None)
+        #ax.text(base_x*valRangeX, maxValY-0.35*valRangeY, "N: {0:.0f}".format(N), fontdict=None)
 
     ax.tick_params(axis='x', length=5, direction='in', width=1)
     ax.tick_params(axis='y', length=5, direction='in', width=1)
+    #ax.tick_params(axis='x', color='m', length=4, direction='in', width=1,
+    #              labelcolor='g', grid_color='b')
 
+    if metadata is not None:
+        climId_idx = commonCols.index('climID_orig')
+        scenario_idx = commonCols.index('scenario')
+        siteType_idx = commonCols.index('siteType')
+        age_idx = commonCols.index('age_'+speciesStr)
+        H_idx = commonCols.index('H_'+speciesStr)
+        D_idx = commonCols.index('D_'+speciesStr)
+        BA_idx = commonCols.index('BA_'+speciesStr)
+        
+        xStartPos = len(tgtTimeSeries)-0.32*len(tgtTimeSeries)
+        #ax.text(xStartPos, axxMin_y+0.4*valRangeY, "climID:  {0:.0f}".format(metadata.iloc[ctr,climId_idx]), fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.45*valRangeY, "Model: hadgem3_gc31_ll", fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.4*valRangeY, "Scenario: {scenario}".format(scenario=metadata.iloc[ctr,scenario_idx]), fontdict=None)
+        
+        ax.text(xStartPos, axxMin_y+0.3*valRangeY, "Site status @Year: {0:.0f}:".format(axxMin_x-1), fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.25*valRangeY, "Age: {0:.0f} $yrs$".format(metadata.iloc[ctr,age_idx]), fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.2*valRangeY, "DBH: {0:.0f} $cm$".format(metadata.iloc[ctr,D_idx]), fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.15*valRangeY, "Height: {0:.0f} $m$".format(metadata.iloc[ctr,H_idx]), fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.1*valRangeY, "Basal area: {0:.0f} $m^2/ha$".format(metadata.iloc[ctr,BA_idx]), fontdict=None)
+        ax.text(xStartPos, axxMin_y+0.05*valRangeY, "Fertility class: {0:.0f}".format(metadata.iloc[ctr,siteType_idx]), fontdict=None)
+        #if 'H' in targetVar or 'D' in targetVar or 'BA' in targetVar:
+        #	targetVarIdx = commonCols.index(targetVar)
+        #	ax.text(xStartPos, axxMin_y+0.05*valRangeY, targetVar + ": {0:.0f}".format(metadata.iloc[ctr,targetVarIdx]), fontdict=None)
+            
     if xlabelStr is not None:
         ax.set_xlabel(xlabelStr, fontsize=fontSiz_xLabel)
 
@@ -1762,51 +1524,14 @@ def scatterPlots_L(X, Y, fig = None, ax = None, heatMap = True, plotColor = 'blu
         ax.title.set_text(title)
         #fig.suptitle(title, fontsize=14)
         
-    if plotColorBar and heatMap:
-        norm = mcolors.Normalize(vmin=vmin, vmax=vmax, clip=False)
-        cb = fig.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, label='rel. point density')
-
     if outFile is not None:
         plt.savefig(outFile, dpi=600, format = 'png')
         #plt.savefig(outFile, transparent=True)
-        
+
+    #plt.show()
+
     return None
-    
 
-
-def heatMap(input_df, x_column, y_column, ax = None, nrPlotsPerRow = 3, figsize=(10, 10), plotOneToOne = True, thresh=0, levels=10, alpha=0.6):
-
-    #plt.figure(figsize=figsize)     # Make sure the figure is square for equal axes
-    sns.set(style="white")          # Set background to white
-
-    # Scatter plot
-    sns.scatterplot(x=x_column, y=y_column, data=input_df, alpha=0.6, ax = ax)
-
-    # Create a custom color map that goes from white to the rainbow
-    cmap = mcolors.LinearSegmentedColormap.from_list("white_to_rainbow", ["white","skyblue", "deepskyblue","springgreen","green","greenyellow","yellow", "orange", "red", "deeppink"])
-
-    # Use the custom color map for the heatmap
-    sns.kdeplot(x=x_column, y=y_column, data=input_df, fill=True, cmap=cmap, thresh=thresh, levels=levels, ax = ax)
-
-    # Add the x=y line
-    if plotOneToOne:
-        # Plot identity line:
-        pt = (0, 0)
-        ax.axline(pt, slope=1, color='black', linewidth=0.5)
-    
-    # Add the x=y line
-    #plt.plot([0, max(input_df[x_column].max(), input_df[y_column].max())], 
-    #         [0, max(input_df[x_column].max(), input_df[y_column].max())], 
-    #         color='black', linestyle='--', linewidth=1)
-
-    # Set the axes to have the same length and start from the origin
-    axMax = max(input_df[x_column].max(), input_df[y_column].max())
-    #plt.xlim(0, axMax)
-    #plt.ylim(0, axMax)
-    #plt.axis('equal')
-
-    ax.set_xlim(0, axMax) # Plot with margin in x-direction, too
-    ax.set_ylim(0, axMax) # Plot with margin in y-direction
 
 
 
@@ -2151,16 +1876,13 @@ def resultSummary(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'BIASp', 'R
 	return outputTbl
 
 
-def resultSummary_multiVar(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'BIASp', 'R2', 'Ymean'], 
-                    summaryHdrs = ['mean', 'meanabs', 'std', 'min', 'max'], fomType = 'fomsPerYear', 
-                    vectorCountFile = None, outFile = None, verbose = False):
+def resultSummary_multiVar(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'BIASp', 'R2', 'Ymean'], summaryHdrs = ['mean', 'meanabs', 'std', 'min', 'max'], fomType = 'fomsPerYear', vectorCountFile = None):
 
-    if outFile is None:
-        outPath, listFileName = os.path.split(modelListFile)
-        bar, summaryID = os.path.split(listFileName)
-        summaryID = summaryID.split('.')[0]
-        #print("summaryID = ", summaryID)
-        #print("")
+    outPath, listFileName = os.path.split(modelListFile)
+    bar, summaryID = os.path.split(listFileName)
+    summaryID = summaryID.split('.')[0]
+    #print("summaryID = ", summaryID)
+    #print("")
 
     outputTbl = None
 
@@ -2185,7 +1907,7 @@ def resultSummary_multiVar(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'B
         modelPath = os.path.dirname(thisParamFile)
 
         # Read the model parameters:
-        paramDict = readModelParameters(thisParamFile, mode = 'READ_MODEL', verbose = verbose)
+        paramDict = readModelParameters(thisParamFile, mode = 'READ_MODEL', verbose = False)
 
         # Get model target variables:
         targetVars = paramDict['targetVars']
@@ -2206,11 +1928,10 @@ def resultSummary_multiVar(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'B
             
         if paramDict['input_dim_enc'] == 12:
             climDataPeriod = 'Yearly'
-        else:
+        elif paramDict['input_dim_enc'] == 144:
             climDataPeriod = 'Monthly'
-        # The Bi-Monthly option is still missing (normalized dataset not generated):
-        #else:
-        #    climDataPeriod = 'BI-Monthly'
+        else:
+            climDataPeriod = 'BI-Monthly'
             
         if vectorCountFile is not None:
             if paramDict['filters_trainingSet'].split(';')[0].split(' ')[0] == 'runID':
@@ -2228,10 +1949,6 @@ def resultSummary_multiVar(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'B
                 else:
                     vectorCounts_lim = vectorCounts.loc[vectorCounts['runID'] < runID_limit]
                     dataPerc = vectorCounts_lim['CumPerc'].values[-1]
-            else:
-                # If the training set filters do NOT contain the keyword 'runID'
-                # then assume that all data in the training set were used:
-                dataPerc = 100.0
         else:
             dataPerc = np.nan
 
@@ -2301,9 +2018,7 @@ def resultSummary_multiVar(modelListFile, fomHdrs = ['RMSE', 'RMSEp', 'BIAS', 'B
         # output dataframe.
         outputTbl = pd.concat([outputTbl, summary_H_df], axis=0)
 
-    if outFile is None:
-        outFile = os.path.join(outPath, summaryID + '_' + fomType + '_summary.csv')
-        
+    outFile = os.path.join(outPath, summaryID + '_' + fomType + '_summary.csv')
     outputTbl.to_csv(outFile, sep = ',', index = True)
 
     print("summary table saved into: ", outFile)

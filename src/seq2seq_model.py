@@ -865,17 +865,11 @@ def reshapeFcOutput(inputTensor, n_layers_enc):
 # ========================================================================
 # Transformer model
 #
-# From: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+# Original code from: https://pytorch.org/tutorials/beginner/transformer_tutorial.html
+#
+# New link (the above leads to different page):
+# https://pytorch-tutorials-preview.netlify.app/beginner/transformer_tutorial.html
 # ========================================================================
-
-# To Initiate a tramsformer instance:
-# ntokens = len(vocab)  # size of vocabulary = output_dim
-# ## emsize = 200  # embedding dimension
-# hid_dim = 200  # dimension of the feedforward network model in ``nn.TransformerEncoder``
-# nlayers = 2  # number of ``nn.TransformerEncoderLayer`` in ``nn.TransformerEncoder``
-# nhead = 2  # number of heads in ``nn.MultiheadAttention``
-# dropout = 0.2  # dropout probability
-# ------------------------------------------------------------------------
 #
 # model = TransformerModel(output_dim, d_model, nhead, d_hid, nlayers, dropout).to(device)
 #
@@ -903,7 +897,7 @@ class TransformerModel(nn.Module):
 		
 		self.inp_dim_fc = tfParams['inp_dim_fc']
 		
-		# The nYears dictates the length of the postional encoding seq_len dimension.
+		# The nYears dictates the length of the seq_len dimension.
 		# As the static input variables (forest vars + site info) are concatenated
 		# with the sequential climate data inputs, the 'seq_len' dimension has to be
 		# increased with one or two (depending on the number of features in static 
@@ -915,7 +909,10 @@ class TransformerModel(nn.Module):
 			self.seq_len = nYears + 2
 			
 		self.model_type = 'Transformer'
+        
 		self.pos_encoder = PositionalEncoding(self.d_model, self.dropout, self.seq_len)
+		#self.pos_encoder = PositionalEncoding_mod(self.d_model, self.dropout, self.seq_len)
+        
 		encoder_layers = TransformerEncoderLayer(self.d_model, self.nhead, self.hid_dim, self.dropout, batch_first = True)
 		self.transformer_encoder = TransformerEncoder(encoder_layers, self.nlayers)
 		#self.embedding = nn.Embedding(self.output_dim, self.d_model)
@@ -1023,39 +1020,100 @@ class TransformerModel(nn.Module):
 		
 		return output
 
-
 class PositionalEncoding(nn.Module):
 
-	def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 27):
-		super().__init__()
-		# Next line added 5.4.2024, Not Tested! ??/ttehas
-		self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 27):
+        super().__init__()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-		self.dropout = nn.Dropout(p=dropout)
+        self.dropout = nn.Dropout(p=dropout)
 
-		position = torch.arange(max_len).unsqueeze(1)
-		div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-		pe = torch.zeros(1, max_len, d_model)
-		pe[0, :, 0::2] = torch.sin(position * div_term)
-		pe[0, :, 1::2] = torch.cos(position * div_term)
-		print("position.shape ", position.shape)
-		print("div_term.shape ", div_term.shape)
-		print("pe.shape ", pe.shape)
-		#print("pe[0,:,:] = ", pe[0,:,:])
-		
-		# Next line added 5.4.2024, Not Tested! ??/ttehas
-		pe = pe.to(self.device)
-		
-		self.register_buffer('pe', pe)
+        position = torch.arange(max_len).unsqueeze(1)
+        
+        # Test different decays with div_term:
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(5.0) / d_model))
+        # div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(100.0) / d_model))
+        # #div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        
+        pe = torch.zeros(1, max_len, d_model)
+        pe[0, :, 0::2] = torch.sin(position * div_term)
+        pe[0, :, 1::2] = torch.cos(position * div_term)
+        
+        #print("position.shape ", position.shape)
+        #print("div_term.shape ", div_term.shape)
+        #print("pe.shape ", pe.shape)
+        #print("pe[0,:,:] = ", pe[0,:,:])
+        
+        pe = pe.to(self.device)
+        
+        self.register_buffer('pe', pe)
 
-	def forward(self, x: Tensor) -> Tensor:
-		"""
-		Arguments:
-			x: Tensor, shape ``[batch_size, seq_len, input_dim]``
-			## x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
-		"""
-		x = x + self.pe[:x.size(1)]
-		return self.dropout(x)
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[batch_size, seq_len, input_dim]``
+        """
+        x = x + self.pe[:x.size(1)]
+        return self.dropout(x)
+
+
+class PositionalEncoding_mod(nn.Module):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 27):
+        super().__init__()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        
+        # Note the nbr of climate vars is hard coded here! (to be modified!):
+        # If d_model == nrClimVars, then the yearly climate variables are given
+        # as inputs:
+        nrClimVars = 8
+        if d_model == nrClimVars:
+            div_term = torch.linspace(1, 0.1, 4)
+        else:
+            # Else the monthly climate variables are given ():
+            aa = torch.linspace(1, 0.1, 6).unsqueeze(0)
+            div_term = aa
+            for ii in range(nrClimVars-1):
+                div_term = torch.cat((div_term, aa), 1)
+                
+            div_term = div_term.squeeze(0)
+        
+        # PositionalEncoding() v.1.1
+        # div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(100.0) / d_model))
+        # PositionalEncoding() v.1.0 = original code:
+        # #div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        
+        pe = torch.zeros(1, max_len, d_model)
+        
+        # Use only the position encoding along the sequence dimension (no div_term here):
+        # PositionalEncoding() v.1.2
+        # pe[0, :, 0::2] = torch.sin(position)
+        # pe[0, :, 1::2] = torch.cos(position)
+        
+        # Original code:
+        pe[0, :, 0::2] = torch.sin(position * div_term)
+        pe[0, :, 1::2] = torch.cos(position * div_term)
+        
+        #print("position.shape ", position.shape)
+        #print("div_term.shape ", div_term.shape)
+        #print("pe.shape ", pe.shape)
+        #print("pe[0,:,:] = ", pe[0,:,:])
+        
+        pe = pe.to(self.device)
+        
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[batch_size, seq_len, input_dim]``
+        """
+        x = x + self.pe[:x.size(1)]
+        return self.dropout(x)
 
 
 # initModel()

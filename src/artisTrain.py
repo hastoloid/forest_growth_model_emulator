@@ -61,8 +61,6 @@ if __name__ == '__main__':
 
 	# ------------------------------------------------------------
 	# Construct Datasets
-	# With the new data sets for faster training this phase takes
-	# longer. With full data set & ttehas laptop PC: 3 hours 22 mins
 	# ------------------------------------------------------------
 	print("2. Construct data sets ...")
 	start_time = time.time()
@@ -73,8 +71,6 @@ if __name__ == '__main__':
 
 	# ------------------------------------------------------------
 	# Model training
-	# With the new data sets for faster training this phase took
-	# 70 mins = 1 hour 10 mins with ttehas laptop PC
 	# ------------------------------------------------------------
 	print("3. Train the model ...")
 	model, trainvalidLosses, bestValidLoss, monTrainLoss = trainingLoop(model, paramDict, training_loader, validation_loader, optimizer, criterion, verbose = False)
@@ -133,4 +129,3 @@ if __name__ == '__main__':
 	endTime = time.time()
 	t_mins, t_secs = elapsedTime(startTime, endTime)
 	print("Model trained and evaluated in {:02} min {:02} sec \r".format(t_mins, t_secs), end="")
-	#print('Processed in %.1f seconds ' % (endTime - startTime))

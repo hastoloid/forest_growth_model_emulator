@@ -1115,7 +1115,7 @@ def replaceValuesBelowThreshold(df, columns, thresholds, new_values):
 # with sspx_y_z = [ssp1_2_6, ssp2_4_5, ssp5_8_5], and
 # yyyy_yyyy = [2020_2020, 2020_2040, 2021_2040, 2041_2060, 2061_2080, 2081_2100]
 #
-# The data has been fetched with the function CDS_api.py/getClimateData(), and
+# The data has been fetched with the function CDSA_api.py/getClimateData(), and
 # the columns YEAR MONTH DAY BI_MONTH has been added to the original data files
 # by forestVarData_tools.py/add_YMD_to_climData().
 #
@@ -1318,7 +1318,7 @@ def retrieveClimateData(inPath, nrClimIDs = 10, nrYears = 25,
 		
 	# Compute the transposed (multiSitePrebas requires this) climate
 	# variables, and return them as dict:
-	climateDataDict = txData4prebas(climateData_df, verbose = verbose)
+	climateDataDict = txData4prebas(climateData_df)
 
 	return climateData_df, climateDataDict, crossRef_climID_df
 
@@ -1333,62 +1333,59 @@ def retrieveClimateData(inPath, nrClimIDs = 10, nrYears = 25,
 
 def txData4prebas(climData, filterStr = None, verbose = False):
 
-    # Optionally read the pre-processed climate data from file:
-    if isinstance(climData, str):
-        climData_df = pd.read_csv(climData)
-    else:
-        climData_df = climData
-            
-    dataHdrs = climData_df.columns
+	# Optionally read the pre-processed climate data from file:
+	if isinstance(climData, str):
+		climData_df = pd.read_csv(climData)
+	else:
+		climData_df = climData
+			
+	dataHdrs = climData_df.columns
 
-    # Filter the input geoDataFrame according to 'fiterStr':
-    if filterStr is not None:
-        climData_df = filterDataFrame(climData_df, filterStr)
+	# Filter the input geoDataFrame according to 'fiterStr':
+	if filterStr is not None:
+		climData_df = filterDataFrame(climData_df, filterStr)
 
-    # Use the data naming from prebas software (for transposed data):
-    dataNames = ['PAR', 'TAir', 'Precip', 'VPD', 'CO2']
+	# Use the data naming from prebas software (for transposed data):
+	dataNames = ['PAR', 'TAir', 'Precip', 'VPD', 'CO2']
 
-    # Extract unique climID's (first column of input data table):
-    climIDs_uniq = climData_df['climID'].unique()
-    nrDates = int(climData_df.shape[0]/len(climIDs_uniq))
+	# Extract unique climID's (first column of input data table):
+	climIDs_uniq = climData_df['climID'].unique()
+	nrDates = int(climData_df.shape[0]/len(climIDs_uniq))
 
-    if verbose:
-        print("climIDs_uniq = ", climIDs_uniq)
-        print("nrDates = ", nrDates)
+	if verbose:
+		print("climIDs_uniq = ", climIDs_uniq)
+		print("nrDates = ", nrDates)
 
-    climateDataOut = OrderedDict()
+	climateDataOut = OrderedDict()
 
-    # Extract each data type one by one with the 'climID' column: 
-    for i, thisHdr in enumerate(dataNames):
-        thisdata = climData_df[['climID', thisHdr]][:]
-        thisDataOut = np.empty((nrDates,0))
-        
-        # Filter the data for this climID and
-        for thisClimID in climIDs_uniq:
-            #print("thisClimID = ", thisClimID)
-            thisChunk_df = filterDataFrame(thisdata, 'climID == ' + str(thisClimID))
-            thisChunk = thisChunk_df.loc[:,thisHdr].to_numpy()
-            
-            # Force the the obtained Numpy matrix to have two dimensions
-            # (to np.concatenate to succeed):
-            thisChunk = np.reshape(thisChunk, (nrDates,1))
-            
-            # Concatenate the transpose of this data chunk to 'thisDataOut':
-            thisDataOut = np.concatenate((thisDataOut, thisChunk), axis=1)
-        
-        # transpose 'thisDataOut' when all data from all climIDs have been added:
-        thisDataOut = np.transpose(thisDataOut)
-        #print("thisDataOut.shape = ", thisDataOut.shape)
-        
-        # Save the output DataFrames into an ordered dict:
-        climateDataOut[thisHdr] = pd.DataFrame(thisDataOut)
-        
-        if verbose:
-            print(thisHdr + ' data shape = ', climateDataOut[thisHdr].shape)
-            
-    # Return the ordered dict with the variables
-    # 'PAR', 'TAir', 'Precip', 'VPD', 'CO2'
-    return climateDataOut
+	# Extract each data type one by one with the 'climID' column: 
+	for i, thisHdr in enumerate(dataNames):
+		thisdata = climData_df[['climID', thisHdr]][:]
+		thisDataOut = np.empty((nrDates,0))
+		
+		# Filter the data for this climID and
+		for thisClimID in climIDs_uniq:
+			#print("thisClimID = ", thisClimID)
+			thisChunk_df = filterDataFrame(thisdata, 'climID == ' + str(thisClimID))
+			thisChunk = thisChunk_df.loc[:,thisHdr].to_numpy()
+			
+			# Force the the obtained Numpy matrix to have two dimensions
+			# (to np.concatenate to succeed):
+			thisChunk = np.reshape(thisChunk, (nrDates,1))
+			
+			# Concatenate the transpose of this data chunk to 'thisDataOut':
+			thisDataOut = np.concatenate((thisDataOut, thisChunk), axis=1)
+		
+		# transpose 'thisDataOut' when all data from all climIDs have been added:
+		thisDataOut = np.transpose(thisDataOut)
+		#print("thisDataOut.shape = ", thisDataOut.shape)
+		
+		# Save the output DataFrames into an ordered dict:
+		climateDataOut[thisHdr] = pd.DataFrame(thisDataOut)
+
+	# Return the ordered dict with the variables
+	# 'PAR', 'TAir', 'Precip', 'VPD', 'CO2'
+	return climateDataOut
 
 	
 
@@ -2090,78 +2087,73 @@ def composePrebasSubSet(inPath = None, subSetHdrFile = None, outFile = None, run
 #
 # Input parameters:
 
-def replaceMissingData(inFile, inputVars = None, targetVars = None, speciess = None, nYears = 25, filters = None, outFile = None, verbose = False):
+def replaceMissingData(inFile, inputVars = None, targetVars = None, speciess = None, nYears = 25, outFile = None, verbose = False):
 
-    #inputVars = ['age_pine', 'age_spr', 'age_bl', 'H_pine', 'H_spr', 'H_bl', 'D_pine', 'D_spr', 'D_bl', 'BA_pine', 'BA_spr', 'BA_bl']
-    if inputVars is None:
-        inputVars = ['age', 'H', 'D', 'BA']
+	#inputVars = ['age_pine', 'age_spr', 'age_bl', 'H_pine', 'H_spr', 'H_bl', 'D_pine', 'D_spr', 'D_bl', 'BA_pine', 'BA_spr', 'BA_bl']
+	if inputVars is None:
+		inputVars = ['age', 'H', 'D', 'BA']
 
-    if targetVars is None:
-        targetVars= ['H', 'D', 'BA', 'npp', 'ET', 'V', 'GGrowth', 'GPPtrees', 'NEP']
+	if targetVars is None:
+		targetVars= ['H', 'D', 'BA', 'npp', 'ET', 'V', 'GGrowth', 'GPPtrees', 'NEP']
 
-    if speciess is None:
-        speciess = ['pine', 'spr', 'bl']
+	if speciess is None:
+		speciess = ['pine', 'spr', 'bl']
 
-    # Produce target variable names (add the year string to given variable name(s)):
-    targetVarCols = [(i + '_' + str(x+1) + '.0') for i in targetVars for x in range(nYears)]
+	# Produce target variable names (add the year string to given variable name(s)):
+	targetVarCols = [(i + '_' + str(x+1) + '.0') for i in targetVars for x in range(nYears)]
 
-    prebasData = pd.read_csv(inFile)
+	prebasData = pd.read_csv(inFile)
 
-    # Apply filters, if given:
-    if filters is not None:
-        for thisFilter in filters:
-            prebasData = prebasData.query(thisFilter)
+	# Extract the species data presence/absence indicator variables:
+	indTbl = prebasData[['exst_pine', 'exst_spr', 'exst_bl']]
 
-    # Extract the species data presence/absence indicator variables:
-    indTbl = prebasData[['exst_pine', 'exst_spr', 'exst_bl']]
+	# Init random generator:
+	rng = np.random.default_rng()
 
-    # Init random generator:
-    rng = np.random.default_rng()
+	# Extract non-NULL data to sample the replacement data from:
+	for thisSpecies in speciess:
+		inputVars_thisSpec = [(i + '_' + thisSpecies) for i in inputVars]
+		inputVarColIdx = [idx for idx, hdr in enumerate(prebasData.columns) if hdr in inputVars_thisSpec]
+		
+		tgtVarCols_thisSpec = [(i + '_' + thisSpecies + '_' + str(x+1) + '.0') for i in targetVars for x in range(nYears)]
+		tgtVarColIdx = [idx for idx, hdr in enumerate(prebasData.columns) if hdr in tgtVarCols_thisSpec]
+		
+		replaceData_thisSpec = prebasData[inputVars_thisSpec+tgtVarCols_thisSpec]
 
-    # Extract non-NULL data to sample the replacement data from:
-    for thisSpecies in speciess:
-        inputVars_thisSpec = [(i + '_' + thisSpecies) for i in inputVars]
-        inputVarColIdx = [idx for idx, hdr in enumerate(prebasData.columns) if hdr in inputVars_thisSpec]
-        
-        tgtVarCols_thisSpec = [(i + '_' + thisSpecies + '_' + str(x+1) + '.0') for i in targetVars for x in range(nYears)]
-        tgtVarColIdx = [idx for idx, hdr in enumerate(prebasData.columns) if hdr in tgtVarCols_thisSpec]
-        
-        replaceData_thisSpec = prebasData[inputVars_thisSpec+tgtVarCols_thisSpec]
+		# remove NaN's from this species replacement data:
+		replaceData_thisSpec = replaceData_thisSpec.dropna(axis=0)
+		if verbose:
+			print("prebasData.shape = ", prebasData.shape)
+			print("replaceData_thisSpec.shape = ", replaceData_thisSpec.shape)
+			#print(replaceData_thisSpec.head())
 
-        # remove NaN's from this species replacement data:
-        replaceData_thisSpec = replaceData_thisSpec.dropna(axis=0)
-        if verbose:
-            print("prebasData.shape = ", prebasData.shape)
-            print("replaceData_thisSpec.shape = ", replaceData_thisSpec.shape)
-            #print(replaceData_thisSpec.head())
+		# Re-organize the replacement data into random order:
+		repl_idx = np.arange(replaceData_thisSpec.shape[0])
+		rng.shuffle(repl_idx)
+		replaceData_thisSpec = replaceData_thisSpec.iloc[repl_idx, :]
+		
+		# Sort the prebasData according to this species presence/absence column:
+		precAbscol = 'exst_' + thisSpecies
+		prebasData.sort_values(by=[precAbscol], inplace=True, ignore_index=True)
+		
+		# Get the indices of the NULL value rows (for this species data)
+		# These are the first len(nullIdx) rows in the sorted dataframe:
+		nullIdx = prebasData.index[prebasData[precAbscol]==0]
+		#nullIdx = prebasData.index[prebasData[precAbscol]==0].tolist()
+		
+		if verbose:
+			print("len(nullIdx) = ", len(nullIdx))
 
-        # Re-organize the replacement data into random order:
-        repl_idx = np.arange(replaceData_thisSpec.shape[0])
-        rng.shuffle(repl_idx)
-        replaceData_thisSpec = replaceData_thisSpec.iloc[repl_idx, :]
-        
-        # Sort the prebasData according to this species presence/absence column:
-        precAbscol = 'exst_' + thisSpecies
-        prebasData.sort_values(by=[precAbscol], inplace=True, ignore_index=True)
-        
-        # Get the indices of the NULL value rows (for this species data)
-        # These are the first len(nullIdx) rows in the sorted dataframe:
-        nullIdx = prebasData.index[prebasData[precAbscol]==0]
-        #nullIdx = prebasData.index[prebasData[precAbscol]==0].tolist()
-        
-        if verbose:
-            print("len(nullIdx) = ", len(nullIdx))
+		# Select the first len(nullIdx) rows of replaceData_thisSpec
+		replaceData_thisSpec = replaceData_thisSpec.iloc[nullIdx,:]
+		
+		prebasData.iloc[nullIdx, inputVarColIdx] = replaceData_thisSpec[inputVars_thisSpec]
+		prebasData.iloc[nullIdx, tgtVarColIdx] = replaceData_thisSpec[tgtVarCols_thisSpec]
+		
+	if outFile is not None:
+		prebasData.to_csv(outFile, sep = ',', index = False)
 
-        # Select the first len(nullIdx) rows of replaceData_thisSpec
-        replaceData_thisSpec = replaceData_thisSpec.iloc[nullIdx,:]
-        
-        prebasData.iloc[nullIdx, inputVarColIdx] = replaceData_thisSpec[inputVars_thisSpec]
-        prebasData.iloc[nullIdx, tgtVarColIdx] = replaceData_thisSpec[tgtVarCols_thisSpec]
-        
-    if outFile is not None:
-        prebasData.to_csv(outFile, sep = ',', index = False)
-
-    return prebasData
+	return prebasData
 
 
 

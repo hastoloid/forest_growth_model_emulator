@@ -1,10 +1,10 @@
-# artisTrain.py.py
+# artisTrainWrapper.py
 #
 # This is a stand-alone version of the code originally written in Seq2seq_model.ipynb
 #
 # The purpose is to train + verify a PyTorch model from command line
-# interface and in Linux operation system (in CSC machines) to runs
-# a grid search for optimal hypeparameter values.
+# interface and in Linux operation system to performa a grid search
+# for model hyperparameters.
 
 import os
 import datetime
