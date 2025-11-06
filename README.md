@@ -35,7 +35,7 @@ The fully connected block's outputs are connected to the RNN hidden state (and c
     
 </div>
 
-<img src="img/FC_RNN_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
+<img src="img/FC_RNN_model_20251106.png" alt="Drawing" style="width: 600px;"/>
 <br>
 
 ***
@@ -54,7 +54,7 @@ the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fu
 
 </div>
 
-<img src="img/seq2seq_model_20250206.png" alt="Drawing" style="width: 800px;"/>
+<img src="img/S2S_model_20251106.png" alt="Drawing" style="width: 800px;"/>
 <br>
 
 ***
@@ -67,7 +67,7 @@ This net architecture is arealization of the vanilla transformer (Vaswani et al.
     
 </div>
 
-<img src="img/TXFORMER_Model_20250206.png" alt="Drawing" style="width: 600px;"/>
+<img src="img/TXFORMER_model_20251106.png" alt="Drawing" style="width: 600px;"/>
 
 
 
