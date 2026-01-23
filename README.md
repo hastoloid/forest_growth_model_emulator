@@ -8,15 +8,7 @@ The tool facilitates the training of three different neural network architecture
 
 The tool may be used to produce up to 25-year predictions for forest variables: tree height (H), stem diameter (D), basal area (BA), stem volume (V), and the carbon balance variables: net primary production (npp), gross primary production per tree layer (GPPtrees), net ecosystem exchange (NEP) and gross growth (GGR) to train the machine learning models. The predictions are available for species-wise variables (three species): pine, spruce (spr), and broadleaved (bl) species (e.g. H_pine, H_spr, H_bl; i.e. no variables for totals).<br>
 
-The data set for the model training and evaluation contains forest variable data from 28,666 field inventory plots in continental Finland that were used as the initial state of the sites to be simulated. These data were provided by The Finnish Forest Centre (FFC). Two additional separate data sets contain aggregated (yearly and monthly) climate data downloaded from Copernicus Climate Data Store (CDS) to provide realistic climate scenarios.
-
-Data origins:
-
-FFC data:<br>
-https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/metsatietoaineistot/metsavaratiedot
-
-CDS climate data:<br>
-https://cds.climate.copernicus.eu/#!/home
+The data set for the model training and evaluation contains forest variable data from 29,619 field inventory plots in continental Finland that were used as the initial state of the sites to be simulated. These data were provided by The Finnish Forest Centre (FFC). Two additional separate data sets contain aggregated (yearly and monthly) climate data downloaded from Copernicus Climate Data Store (CDS) to provide realistic climate scenarios.
 
 ***
 ### Network Architectures
@@ -38,8 +30,11 @@ The fully connected block's outputs are connected to the RNN hidden state (and c
 <img src="img/FC_RNN_model_20251106.png" alt="Drawing" style="width: 600px;"/>
 <br>
 
+GRU = Gated Recurrent Unit, LSTM = Long short-term memory, PAR = photosynthetically active radiation, TAir = daily temperature, Precip = precipitation, VPD = vapour pressure deficit, CO2 = carbon dioxide, h0 = hidden state vector, c0 = cell state vector
+
+The dashed arrows in the Figure above depict the optional copy of the dense layer outputs to the initial hidden (and cell) state vectors h0, c0 of the RNN encoder.
 ***
-#### iI) The seq2seq model (S2S)
+#### ii) The seq2seq model (S2S)
 
 <div class="alert alert-block alert-warning">
 <b>The seq2seq model architecture contains the modules:</b>
@@ -57,6 +52,8 @@ the RNN hidden state inputs (h0). If the nuber of the encoder layers > 1, the fu
 <img src="img/S2S_model_20251106.png" alt="Drawing" style="width: 800px;"/>
 <br>
 
+GRU = Gated Recurrent Unit, LSTM = Long short-term memory, PAR = photosynthetically active radiation, TAir = daily temperature, Precip = precipitation, VPD = vapour pressure deficit, CO2 = carbon dioxide, h0 = hidden state vector, c0 = cell state vector
+
 ***
 #### iii) Vanilla transformer encoder model (TXFORMER)
 
@@ -67,7 +64,7 @@ This net architecture is arealization of the vanilla transformer (Vaswani et al.
     
 </div>
 
-<img src="img/TXFORMER_model_20251106.png" alt="Drawing" style="width: 400px;"/>
+<img src="img/TXFORMER_model_20251106.png" alt="Drawing" style="width: 300px;"/>
 
 
 
@@ -82,19 +79,32 @@ https://github.com/SheezaShabbir/Time-series-Analysis-using-LSTM-RNN-and-GRU/blo
 The Transformer encoder model:<br>
 https://pytorch-tutorials-preview.netlify.app/beginner/transformer_tutorial.html<br>
 
+***
+## Forest growth model emulator data set
+
+The forest site data (with 25 year rPrebasso predictions) and the climate data files (*.csv) needed in the model training / evaluation may be downloaded from:
+
+https://doi.org/10.5281/zenodo.18186624
 
 ***
-### For the PREBASSO tool, see:
+#### Data origins:
+
+FFC data:<br>
+https://www.metsakeskus.fi/fi/avoin-metsa-ja-luontotieto/metsatietoaineistot/metsavaratiedot
+
+CDS climate data:<br>
+https://cds.climate.copernicus.eu/#!/home
+
+***
+#### For the PREBASSO tool, see:
 https://github.com/ForModLabUHel/Rprebasso
 
 ***
-### References:<br>
+#### References:<br>
 Mäkelä, A. (1997). A Carbon Balance Model of Growth and Self-Pruning in Trees Based on Structural Relationships. Forest Science, 43(1), 7–24. https://doi.org/10.1093/forestscience/43.1.7
 <br><br>
 Minunno, F., Peltoniemi, M., Launiainen, S., Aurela, M., Lindroth, A., Lohila, A., Mammarella, I., Minkkinen, K., & Mäkelä, A. (2016). Calibration and validation of a semi-empirical flux ecosystem model for coniferous forests in the Boreal region. Ecological Modelling, 341, 37–52. https://doi.org/10.1016/j.ecolmodel.2016.09.020
 <br><br>
 Vaswani, A. et al. (2017) ‘Attention is all you need’, in Proceedings of the 31st International Conference on Neural Information Processing Systems. Red Hook, NY, USA: Curran Associates Inc. (NIPS’17), pp. 6000–6010.
 
-***
-## NOTE: This repository is not ready!
 
